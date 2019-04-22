@@ -1,4 +1,4 @@
-import asPromise from "withPromise";
+import asPromise from "./withPromise";
 
 export default middleware => ({ FAILED, FULFILLED, REQUESTED }) => store => {
   const types = [FAILED, FULFILLED, REQUESTED].filter(p => p);
