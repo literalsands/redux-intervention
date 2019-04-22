@@ -19,7 +19,7 @@
     "intervention",
     "intervene"
   ],
-  "file": [
+  "files": [
     "lib/**"
   ],
   "author": "Austin New <literalsands@gmail.com>",
