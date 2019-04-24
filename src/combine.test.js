@@ -37,54 +37,74 @@ test("Returns a combined cased middleware.", t => {
 });
 
 test("Combines cases.", t => {
-  const appendAC =appendPayload("a-c");
-  const append03 =appendPayload("0-9");
+  const appendAC = appendPayload("a-c");
+  const append03 = appendPayload("0-9");
   t.deepEqual(
     combineCases(
       [appendAC, "a", "b", "c"],
       [append03, ...new Array(4).fill(0).map((a, i) => `${i}`)]
     ),
     {
-        a: appendAC,
-        b: appendAC,
-        c: appendAC,
-        ['0']: append03,
-        ['1']: append03,
-        ['2']: append03,
-        ['3']: append03,
+      a: appendAC,
+      b: appendAC,
+      c: appendAC,
+      ["0"]: append03,
+      ["1"]: append03,
+      ["2"]: append03,
+      ["3"]: append03
     }
   );
 });
 test("Combines across objects and arrays.", t => {
-  const appendAC =appendPayload("a-c");
-  const append03 =appendPayload("0-9");
+  const appendAC = appendPayload("a-c");
+  const append03 = appendPayload("0-9");
   t.deepEqual(
     combineCases(
       [appendAC, "a", "b", "c"],
       [[append03, ...new Array(4).fill(0).map((a, i) => `${i}`)]],
       {
-          ['d']: append03
+        ["d"]: append03
       }
     ),
     {
-        a: appendAC,
-        b: appendAC,
-        c: appendAC,
-        d: append03,
-        ['0']: append03,
-        ['1']: append03,
-        ['2']: append03,
-        ['3']: append03,
+      a: appendAC,
+      b: appendAC,
+      c: appendAC,
+      d: append03,
+      ["0"]: append03,
+      ["1"]: append03,
+      ["2"]: append03,
+      ["3"]: append03
     }
   );
+});
+
+test("Combine returns a function with keys that correspond to cases.", t => {
+  const appendAC = appendPayload("a-c");
+  const appendA = appendPayload("a");
+  const middleware = combine([appendAC, "a", "b", "c"], [appendA, "d"]);
+  t.is(typeof middleware, "function");
+  t.is(middleware.a, appendAC);
+  t.is(middleware.b, appendAC);
+  t.is(middleware.c, appendAC);
+  t.is(middleware.d, appendA);
+});
+
+test("Combines combinations.", t => {
+  const appendAC = appendPayload("a-c");
+  t.deepEqual(combineCases(combine([appendAC, "a", "b", "c"])), {
+    a: appendAC,
+    b: appendAC,
+    c: appendAC
+  });
 });
 
 test("Runs cases.", t => {
   const store = createStore(
     actionPayloadReducer,
-    applyMiddleware(runCases({ a: appendPayload("a") }))
+    applyMiddleware(runCases({ b: appendPayload("a") }))
   );
   t.notThrows(() => store.dispatch({ type: {} }));
-  store.dispatch({ type: "a", payload: "" });
+  store.dispatch({ type: "b", payload: "" });
   t.is(store.getState(), "a");
 });

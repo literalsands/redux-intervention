@@ -7,8 +7,8 @@ export const runCases = middlewares => store => next => action => {
   }
 };
 
-export const combineCases = (...middlewaresWithCases) =>
-  middlewaresWithCases
+export const combineCases = function(...middlewaresWithCases) {
+  return middlewaresWithCases
     .reduce(
       (arrayCases, objectOrArray) =>
         arrayCases.concat(
@@ -34,15 +34,18 @@ export const combineCases = (...middlewaresWithCases) =>
       });
       return middlewares;
     }, {});
+};
 
 /**
  * Combines middlewares by action type casing for efficiency and bug prevention.
  *
  * @param  {...[middleware, ...cases]} middlewaresWithCases
  */
-const combineMiddleware = (...middlewaresWithCases) => store => next => {
+const combineMiddleware = (...middlewaresWithCases) => {
   const middlewares = combineCases(...middlewaresWithCases);
-  return runCases(middlewares)(store)(next);
+  return Object.assign(function(store) {
+    return next => runCases(middlewares)(store)(next);
+  }, middlewares);
 };
 
 export default combineMiddleware;
