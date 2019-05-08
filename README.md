@@ -2,14 +2,17 @@
 # Redux Intervention
 _A collection of functions for composing and simplifying middleware in Redux._
 
-This is currently a work in progress. Pull requests and discussion is very welcome.
+:construction: :construction: This is currently a work in progress. Pull requests and discussion are very welcome.
+
+```bash
+```
 
 ## Overview
 
-* promote
-* combine
-* promiseNext
-* request
+* *promote* - Promotes a thunk or action creator into a middleware.
+* *combine* - Efficiently combine and limit middleware to action types.
+* *promiseNext* - Wrap middleware(s) to return the value of `next(action)` as a promise.
+* *request* - Wrap a middleware with additional actions that are dispatched on request, fulfillment, and failure.
 
 ### promote
 
@@ -25,18 +28,20 @@ Promote a thunk to a middleware by writing a promoter (a function that takes an 
 Combine middleware based on action type cases. Order is preserved.
 
 
-    const userMiddleware = combine(
-      [login, "LOGIN"],
-      [logout, "LOGOUT"]
-    )
-    const articlesMiddleware = combine(
-      [getArticles, "REQUESTED_ARTICLES"],
-      [getCategories, "REQUESTED_CATEGORIES"]
-    )
-    const middleware = combine(
-      userMiddleware,
-      articlesMiddleware
-    )
+```js
+const userMiddleware = combine(
+  [login, "LOGIN"],
+  [logout, "LOGOUT"]
+)
+const articlesMiddleware = combine(
+  [getArticles, "REQUESTED_ARTICLES"],
+  [getCategories, "REQUESTED_CATEGORIES"]
+)
+const middleware = combine(
+  userMiddleware,
+  articlesMiddleware
+)
+```
 
 
 ### PromiseNext
@@ -50,15 +55,17 @@ Returns a promise that resolves when next(action) is called. So this will resolv
 
 In practice:
 
-    // store.createStore(reducer, applyMiddleware(thunk, promiseNext()))
-    
-    const loadSomeStuffMiddleware = store => next => action =>
-    // if (action.type === "REQUESTED_USER_THINGS")
-      Promise.all(
-        store.dispatch({ type: "REQUESTED_CATEGORIES", payload: { userId, token }}),
-        store.dispatch({ type: "REQUESTED_ARTICLES", payload: { userId, token }}),
-        store.dispatch({ type: "REQUESTED_FLOWERS", payload: { userId, token }})
-      ).then(() => next(action))
+```js
+// store.createStore(reducer, applyMiddleware(thunk, promiseNext()))
+
+const loadSomeStuffMiddleware = store => next => action =>
+// if (action.type === "REQUESTED_USER_THINGS")
+  Promise.all(
+    store.dispatch({ type: "REQUESTED_CATEGORIES", payload: { userId, token }}),
+    store.dispatch({ type: "REQUESTED_ARTICLES", payload: { userId, token }}),
+    store.dispatch({ type: "REQUESTED_FLOWERS", payload: { userId, token }})
+  ).then(() => next(action))
+```
     
     
 
@@ -72,42 +79,44 @@ Wraps the middleware, dispatching additional REQUESTED, FULFILLED, FAILED action
 
 In action:
 
-    const types = {
-      REQUESTED: {},
-      FULFILLED: {},
-      FAILED: {}
-    };
-    
-    const pendingActionMiddlewareReducer = (state = [], action) => {
-      switch (action.type) {
-        case types.REQUESTED:
-          return [...state, action.payload];
-        case types.FAILED:
-        case types.FULFILLED:
-          return state.filter(a => a !== action.payload)
-        default:
-          return state;
-      }
-    }
-    const fulfilledActionMiddlewareReducer = (state = [], action) => {
-      switch (action.type) {
-        case types.FULFILLED:
-          return [...state, action.payload];
-        default:
-          return state;
-      }
-    }
-    
-    const reducer = combineReducers({
-      pending: pendingActionMiddlewareReducer,
-      fulfilled: fulfilledActionMiddlewareReducer
-    })
-    
-    const store = createStore(pendingActionMiddlewareReducer, applyMiddleware(request(middleware)))
-    
-    store.dispatch({ type: "ASYNC" }).then(() => {
-      store.getState()
-      // success { pending: [], fulfilled: [{type: "ASYNC"}] }
-      // failure { pending: [], fulfilled: [] }
-    })
-    store.getState() // { pending: [{type: "ASYNC"}], fulfilled: [] }
+```js
+const types = {
+  REQUESTED: {},
+  FULFILLED: {},
+  FAILED: {}
+};
+
+const pendingActionMiddlewareReducer = (state = [], action) => {
+  switch (action.type) {
+    case types.REQUESTED:
+      return [...state, action.payload];
+    case types.FAILED:
+    case types.FULFILLED:
+      return state.filter(a => a !== action.payload)
+    default:
+      return state;
+  }
+}
+const fulfilledActionMiddlewareReducer = (state = [], action) => {
+  switch (action.type) {
+    case types.FULFILLED:
+      return [...state, action.payload];
+    default:
+      return state;
+  }
+}
+
+const reducer = combineReducers({
+  pending: pendingActionMiddlewareReducer,
+  fulfilled: fulfilledActionMiddlewareReducer
+})
+
+const store = createStore(pendingActionMiddlewareReducer, applyMiddleware(request(middleware)))
+
+store.dispatch({ type: "ASYNC" }).then(() => {
+  store.getState()
+  // success { pending: [], fulfilled: [{type: "ASYNC"}] }
+  // failure { pending: [], fulfilled: [] }
+})
+store.getState() // { pending: [{type: "ASYNC"}], fulfilled: [] }
+```
