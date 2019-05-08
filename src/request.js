@@ -1,4 +1,4 @@
-import asPromise from "./withPromise";
+import asPromise from "./promiseNext";
 
 export default middleware => ({ FAILED, FULFILLED, REQUESTED }) => store => {
   const types = [FAILED, FULFILLED, REQUESTED].filter(p => p);
@@ -31,10 +31,10 @@ export default middleware => ({ FAILED, FULFILLED, REQUESTED }) => store => {
           if (FAILED !== undefined) {
             store.dispatch({
               type: FAILED,
-              payload: action,
+              payload: error,
               error: true,
               meta: {
-                error
+                action
               }
             });
           }

@@ -1,18 +1,16 @@
-import withPromise, {asPromise} from "./withPromise";
+import promiseNext, { asPromise } from "./promiseNext";
 import test from "ava";
 import thunk from "redux-thunk";
 import { createStore, applyMiddleware } from "redux";
 
+const longTimeoutMiddleware = store => next => action => {
+  setTimeout(() => next(action), 60 * 60 * 1000);
+};
 const timeoutMiddleware = store => next => action => {
   setTimeout(() => next(action), 200);
 };
 const timeoutFailureMiddleware = store => next => action => {
-  return new Promise((resolve, reject) =>
-    setTimeout(
-      () => reject(),
-      200
-    )
-  );
+  return new Promise((resolve, reject) => setTimeout(() => reject(), 200));
 };
 const appendPayload = n => store => next => action => {
   next({ ...action, payload: `${action.payload}${n}` });
@@ -23,20 +21,20 @@ const actionReducer = (state, action) => action;
 const actionPayloadReducer = (state, action) => action.payload;
 
 test("Returns a promise.", t => {
-  const store = createStore(nullReducer, applyMiddleware(withPromise()));
+  const store = createStore(nullReducer, applyMiddleware(promiseNext()));
   const dispatchReturn = store.dispatch({ type: {} });
   t.true(dispatchReturn instanceof Promise);
 });
 
 test("Promise resolves.", async t => {
-  const store = createStore(actionReducer, applyMiddleware(withPromise()));
+  const store = createStore(actionReducer, applyMiddleware(promiseNext()));
   const action = { type: "Foo", payload: "Bar" };
   await store.dispatch(action);
   t.is(store.getState(), action);
 });
 
 test("Promise resolves sychronously when there is no asychronous behavior.", t => {
-  const store = createStore(actionReducer, applyMiddleware(withPromise()));
+  const store = createStore(actionReducer, applyMiddleware(promiseNext()));
   const action = { type: "Foo", payload: "Bar" };
   store.dispatch(action);
   t.is(store.getState(), action);
@@ -45,7 +43,7 @@ test("Promise resolves sychronously when there is no asychronous behavior.", t =
 test("Promise doesn't resolve sychronously when there is asychronous behavior.", t => {
   const store = createStore(
     actionReducer,
-    applyMiddleware(withPromise(timeoutMiddleware))
+    applyMiddleware(promiseNext(timeoutMiddleware))
   );
   const action = { type: "Foo", payload: "Bar" };
   store.dispatch(action);
@@ -55,7 +53,7 @@ test("Promise doesn't resolve sychronously when there is asychronous behavior.",
 test("Returns a promise when there is a timeout.", async t => {
   const store = createStore(
     actionReducer,
-    applyMiddleware(withPromise(timeoutMiddleware))
+    applyMiddleware(promiseNext(timeoutMiddleware))
   );
   const action = { type: "Foo", payload: "Bar" };
   const dispatchReturn = store.dispatch(action);
@@ -68,7 +66,7 @@ test("Calls middleware in the right order.", async t => {
   const store = createStore(
     actionPayloadReducer,
     applyMiddleware(
-      withPromise(appendPayload("1"), appendPayload("2"), appendPayload("3"))
+      promiseNext(appendPayload("1"), appendPayload("2"), appendPayload("3"))
     )
   );
   await store.dispatch({ type: {}, payload: "0" });
@@ -80,7 +78,7 @@ test("Calls middleware in the right order.", async t => {
 test("Returns a promise when there are multiple timeouts.", async t => {
   const store = createStore(
     actionReducer,
-    applyMiddleware(withPromise(timeoutMiddleware, timeoutMiddleware))
+    applyMiddleware(promiseNext(timeoutMiddleware, timeoutMiddleware))
   );
   const action = { type: "Foo", payload: "Bar" };
   const dispatchReturn = store.dispatch(action);
@@ -92,7 +90,7 @@ test("Returns a promise when there are multiple timeouts.", async t => {
 test("Works with thunks.", async t => {
   const store = createStore(
     actionReducer,
-    applyMiddleware(thunk, withPromise(timeoutMiddleware))
+    applyMiddleware(thunk, promiseNext(timeoutMiddleware))
   );
   const action = { type: "Foo", payload: "Bar" };
   const thunkAction = dispatch => dispatch(action);
@@ -105,7 +103,7 @@ test("Works with thunks.", async t => {
 test("Can be nested.", async t => {
   const store = createStore(
     actionReducer,
-    applyMiddleware(withPromise(withPromise(timeoutMiddleware)))
+    applyMiddleware(promiseNext(promiseNext(timeoutMiddleware)))
   );
   const action = { type: "Foo", payload: "Bar" };
   const dispatchReturn = store.dispatch(action);
@@ -118,7 +116,7 @@ test("Can catch errors that occur synchronously in the middleware.", async t => 
   const store = createStore(
     actionReducer,
     applyMiddleware(
-      withPromise(store => next => action => {
+      promiseNext(store => next => action => {
         throw new Error();
       })
     )
@@ -135,9 +133,22 @@ test("Can catch errors that occur in Promises returned in the middleware.", asyn
   );
   const action = { type: "Foo", payload: "Bar" };
   // try {
-  //   await t.throwsAsync(() => 
-  await store.dispatch(action)
-  .catch((e) => t.pass('Got here'))
-  .then(() => t.pass("and, here."))
+  //   await t.throwsAsync(() =>
+  await store
+    .dispatch(action)
+    .catch(e => t.pass("Got here"))
+    .then(() => t.pass("and, here."));
   // } catch (e) {}
+});
+
+test("Provides an optional middleware that rejects all promises in this middleware", async t => {
+  const promisedMiddleware = promiseNext(longTimeoutMiddleware);
+  t.true(promisedMiddleware.abort instanceof Function);
+  const store = createStore(
+    actionReducer,
+    applyMiddleware(promisedMiddleware.abort, promisedMiddleware)
+  );
+  const action = { type: "Foo", payload: "Bar" };
+  // await store.dispatch(action);
+  // t.pass();
 });

@@ -65,8 +65,9 @@ test("Fulfillment dispatches resolve on failure.", async t => {
   await store.dispatch(action);
   t.deepEqual(store.getState()[1], actions[types.REQUESTED]);
   t.deepEqual(store.getState()[2], {
-    ...actions[types.FAILED],
-    meta: { error: undefined },
+    type: actions[types.FAILED].type,
+    payload: undefined,
+    meta: { action: actions[types.FAILED].payload },
     error: true
   });
 });
