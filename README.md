@@ -5,6 +5,12 @@ _A collection of functions for composing and simplifying middleware in Redux._
 :construction: :construction: This is currently a work in progress. Pull requests and discussion are very welcome.
 
 ```bash
+npm install redux-intervention
+```
+
+```js
+import { promote } from 'redux-intervention';
+promote(whatYouThunk);
 ```
 
 ## Overview
