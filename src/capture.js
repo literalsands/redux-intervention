@@ -30,7 +30,12 @@
 const capture = (shouldCaptureReducer, dispatchableReducer) => {
   if (typeof shouldCaptureReducer !== "function") {
     console.error(
-      "`capture` middleware requires a reducer as it's first parameter."
+      "`capture` middleware requires a reducer as it's first argument."
+    );
+  }
+  if (dispatchableReducer !== undefined && typeof dispatchableReducer !== "function") {
+    console.error(
+      "`capture` middleware takes a reducer as it's second argument."
     );
   }
   return ({ dispatch, getState }) => next => action => {
@@ -40,6 +45,8 @@ const capture = (shouldCaptureReducer, dispatchableReducer) => {
       if (dispatchableReducer) {
         const dispatchable = dispatchableReducer(state, action);
         return dispatch(dispatchable);
+      } else {
+        return null;
       }
     }
     return next(action);
