@@ -20,7 +20,7 @@ promote(whatYouThunk);
 * *promiseNext* - Wrap middleware(s) to return the value of `next(action)` as a promise.
 * *request* - Wrap a middleware with additional actions that are dispatched on request, fulfillment, and failure.
 
-### promote
+### Promote
 
 *Promblem:* Most of the logic of the application is best expressed as thunks and action creators. Middleware can be a great place to consolidate and expose that logic.
 
@@ -47,6 +47,28 @@ const middleware = combine(
   userMiddleware,
   articlesMiddleware
 )
+```
+
+### Capture
+
+*Problem:* Dropping dispatches of invalid actions or during invalid states is a common problem. This provides a very simple interface to handle capturing and re-dispatching or dropping actions.
+
+For example, block actions that request a resource before that resource can be accessed.
+
+```js
+import check from 'check-types';
+
+const logInvalidAction = capture((state, action) => {
+  const invalidAction = (switch (action.type) {
+    case "REQUESTED_USER_INFORMATION":
+      return check.string(state.userToken);
+      break;
+    default:
+      return false;
+  })()
+  console.warn('Invalid Action');
+  return 
+})
 ```
 
 
