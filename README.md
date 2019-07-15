@@ -15,14 +15,15 @@ promote(whatYouThunk);
 
 ## Overview
 
-* *promote* - Promotes a thunk or action creator into a middleware.
+* *capture* - Stop an action from propogating and optionally use it to dispatch a new action.
 * *combine* - Efficiently combine and limit middleware to action types.
 * *promiseNext* - Wrap middleware(s) to return the value of `next(action)` as a promise.
+* *promote* - Promotes a thunk or action creator into a middleware.
 * *request* - Wrap a middleware with additional actions that are dispatched on request, fulfillment, and failure.
 
 ### Promote
 
-*Promblem:* Most of the logic of the application is best expressed as thunks and action creators. Middleware can be a great place to consolidate and expose that logic.
+Most of the logic of the application is most naturally expressed as thunks and action creators. Middleware can be a great place to consolidate and expose that logic.
 
 Promote a thunk to a middleware by writing a promoter (a function that takes an action, and optionally a next function) and passing it to promote.
 
