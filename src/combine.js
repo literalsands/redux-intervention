@@ -23,13 +23,12 @@ export const combineCases = function(...middlewaresWithCases) {
         ),
       []
     )
-    .reverse()
     .reduce((middlewares, [middleware, ...cases]) => {
       cases.forEach(_case => {
         const current = middlewares[_case];
         middlewares[_case] =
           current instanceof Function
-            ? store => next => middleware(store)(current)
+            ? store => next => current(store)(middleware(store)(next))
             : middleware;
       });
       return middlewares;

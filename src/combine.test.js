@@ -108,3 +108,18 @@ test("Runs cases.", t => {
   store.dispatch({ type: "b", payload: "" });
   t.is(store.getState(), "a");
 });
+
+test("Runs combined cases where keys overlap.", t => {
+  const store = createStore(
+    actionPayloadReducer,
+    applyMiddleware(
+      combine(
+        { a: appendPayload("-") },
+        combine({ a: appendPayload("0") }, { a: appendPayload("1") }),
+        [appendPayload("+"), "a"],
+      )
+    )
+  );
+  store.dispatch({ type: "a", payload: "" });
+  t.is(store.getState(), "-01+");
+});
