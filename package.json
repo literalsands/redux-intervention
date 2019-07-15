@@ -1,6 +1,6 @@
 {
   "name": "redux-intervention",
-  "version": "0.3.0",
+  "version": "0.3.1",
   "description": "Middlewares and Middleware Reducers for use with Redux.",
   "main": "lib/index.js",
   "scripts": {
