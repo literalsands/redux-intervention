@@ -116,10 +116,32 @@ test("Runs combined cases where keys overlap.", t => {
       combine(
         { a: appendPayload("-") },
         combine({ a: appendPayload("0") }, { a: appendPayload("1") }),
-        [appendPayload("+"), "a"],
+        [appendPayload("+"), "a"]
       )
     )
   );
   store.dispatch({ type: "a", payload: "" });
   t.is(store.getState(), "-01+");
+});
+
+test("Combines middlewares without cases so they are included in all previous cases.", t => {
+  const store = createStore(
+    actionPayloadReducer,
+    applyMiddleware(
+      appendPayload("-"),
+      combine(
+        { a: appendPayload("0") },
+        appendPayload("+"),
+        [appendPayload("1"), 'a'],
+        { c: appendPayload("2") },
+        appendPayload("+"),
+      )
+    )
+  );
+  store.dispatch({ type: "b", payload: "" });
+  t.is(store.getState(), "-");
+  store.dispatch({ type: "c", payload: "" });
+  t.is(store.getState(), "-2+");
+  store.dispatch({ type: "a", payload: "" });
+  t.is(store.getState(), "-0+1+");
 });
