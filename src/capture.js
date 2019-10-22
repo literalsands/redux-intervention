@@ -29,12 +29,15 @@
  */
 const capture = (shouldCaptureReducer, dispatchableReducer) => {
   if (typeof shouldCaptureReducer !== "function") {
-    console.error(
+    throw new Error(
       "`capture` middleware requires a reducer as it's first argument."
     );
   }
-  if (dispatchableReducer !== undefined && typeof dispatchableReducer !== "function") {
-    console.error(
+  if (
+    dispatchableReducer !== undefined &&
+    typeof dispatchableReducer !== "function"
+  ) {
+    throw new Error(
       "`capture` middleware takes a reducer as it's second argument."
     );
   }
