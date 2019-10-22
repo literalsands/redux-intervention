@@ -1,4 +1,4 @@
-import promiseNext, { asPromise } from "./promiseNext";
+import promiseNext, { promiseNext as asPromise } from "./promiseNext";
 import test from "ava";
 import thunk from "redux-thunk";
 import { createStore, applyMiddleware } from "redux";
@@ -122,7 +122,7 @@ test("Can catch errors that occur synchronously in the middleware.", async t => 
     )
   );
   const action = { type: "Foo", payload: "Bar" };
-  await t.throwsAsync(store.dispatch(action));
+  await t.throwsAsync(() => store.dispatch(action));
 });
 
 test("Can catch errors that occur in Promises returned in the middleware.", async t => {
@@ -139,16 +139,4 @@ test("Can catch errors that occur in Promises returned in the middleware.", asyn
     .catch(e => t.pass("Got here"))
     .then(() => t.pass("and, here."));
   // } catch (e) {}
-});
-
-test("Provides an optional middleware that rejects all promises in this middleware", async t => {
-  const promisedMiddleware = promiseNext(longTimeoutMiddleware);
-  t.true(promisedMiddleware.abort instanceof Function);
-  const store = createStore(
-    actionReducer,
-    applyMiddleware(promisedMiddleware.abort, promisedMiddleware)
-  );
-  const action = { type: "Foo", payload: "Bar" };
-  // await store.dispatch(action);
-  // t.pass();
 });

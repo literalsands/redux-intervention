@@ -19,19 +19,11 @@ const _await = next => value =>
  */
 
 /**
- * Doesn't call `next`.
- * @type CallNext
- */
-export const dropNext = promoter => action => {
-  return promoter(action, () => {});
-};
-
-/**
  * Calls `next(action)` before dispatching the promoter.
  * @type CallNext
  */
-export const callNextBeforeDispatch = promoter => (action, next) => {
-  return _await(() => promoter(action, () => {}))(next(action));
+export const resolveBeforeDispatch = promoter => (action, done) => {
+  return _await(() => promoter(action, () => {}))(done());
 };
 
 /**
@@ -39,11 +31,11 @@ export const callNextBeforeDispatch = promoter => (action, next) => {
  * Assumes the first param to the thunk function is dispatch.
  * @type CallNext
  */
-export const callNextAfterDispatch = promoter => (action, next) =>
+export const resolveAfterDispatch = promoter => (action, done) =>
   _await(dispatchable => {
     // Just return a null dispatchable if there's no dispatchable to wrap.
     if (!(dispatchable instanceof Function || dispatchable instanceof Object)) {
-      next(action);
+      done();
       return null;
     }
     // Calling next after dispatching is a thunk by nature, so
@@ -52,11 +44,11 @@ export const callNextAfterDispatch = promoter => (action, next) =>
       const [dispatch] = thunkArgs;
       if (!(dispatch instanceof Function)) {
         throw new Error(
-          `\`callNextAfterDispatch\` promoter requires a thunk middleware on the store.`
+          `\`resolveAfterDispatch\` promoter requires a thunk middleware on the store.`
         );
       }
       return _await(dispatched => {
-        next(action);
+        done();
         return dispatched;
       })(dispatch(dispatchable));
     };
@@ -115,11 +107,11 @@ export const createPromote = ({ wrapper }) =>
             return dispatch(dispatchable);
           }
           return null;
-        })(promoter(action, next));
+        })(promoter(action, () => next(action)));
       };
     };
   };
 
-const promote = createPromote({ wrapper: callNextBeforeDispatch });
+const promote = createPromote({ wrapper: resolveBeforeDispatch });
 
 export default promote;

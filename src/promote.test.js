@@ -1,9 +1,8 @@
 import promote from "./promote";
 import {
   createPromoter,
-  dropNext,
-  callNextAfterDispatch,
-  callNextBeforeDispatch
+  resolveAfterDispatch,
+  resolveBeforeDispatch
 } from "./promote";
 import combine from "./combine";
 import test from "ava";
@@ -44,28 +43,21 @@ const promoterCalls = promoterWrapper => action => {
   };
 };
 
-test("`dropNext` doesn't call next.", async t => {
+test("`resolveBeforeDispatch` calls next and then returns the promoter.", async t => {
   const action = {};
-  const { dispatchable, callOrder } = promoterCalls(dropNext)(action);
-  t.is(await dispatchable, action);
-  t.deepEqual(callOrder, ["promoter"]);
-});
-
-test("`callNextBeforeDispatch` calls next and then returns the promoter.", async t => {
-  const action = {};
-  const { dispatchable, callOrder } = promoterCalls(callNextBeforeDispatch)(
+  const { dispatchable, callOrder } = promoterCalls(resolveBeforeDispatch)(
     action
   );
   t.is(await dispatchable, action);
   t.deepEqual(callOrder, ["next", "promoter"]);
 });
 
-test("`callNextAfterDispatch` calls the promoter then next in a thunk wrapper.", async t => {
+test("`resolveAfterDispatch` calls the promoter then next in a thunk wrapper.", async t => {
   const action = {};
-  const { dispatchable, callOrder } = promoterCalls(callNextAfterDispatch)(
+  const { dispatchable, callOrder } = promoterCalls(resolveAfterDispatch)(
     action
   );
-  // `callNextAfterDispatch` wraps the dispatchable in a thunk.
+  // `resolveAfterDispatch` wraps the dispatchable in a thunk.
   t.is(typeof (await dispatchable), "function");
   t.deepEqual(callOrder, ["promoter"]);
   // The thunk wrapper and next are called when the thunk is executed.
@@ -73,10 +65,10 @@ test("`callNextAfterDispatch` calls the promoter then next in a thunk wrapper.",
   t.deepEqual(callOrder, ["promoter", "thunk", "next"]);
 });
 
-test.skip("`callNextAfterDispatch` calls the promoter only once per action.", t => {
+test.skip("`resolveAfterDispatch` calls the promoter only once per action.", t => {
   t.fail();
 });
-test.skip("`callNextAfterDispatch` calls next only once per action.", t => {
+test.skip("`resolveAfterDispatch` calls next only once per action.", t => {
   t.fail();
 });
 test.skip("Promote throws an error when simple dispatch loops would occur.", t => {
