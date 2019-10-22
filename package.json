@@ -29,26 +29,27 @@
   },
   "homepage": "https://github.com/literalsands/redux-intervention#readme",
   "devDependencies": {
-    "@babel/cli": "^7.4.3",
+    "@babel/cli": "^7.5.5",
     "@babel/core": "^7.4.3",
-    "@babel/node": "^7.2.2",
-    "@babel/polyfill": "^7.4.3",
     "@babel/preset-env": "^7.4.3",
     "@babel/register": "^7.4.0",
     "ava": "^1.4.1",
+    "core-js": "^3.2.1",
     "redux": "^4.0.1",
     "redux-logger": "^3.0.6",
-    "redux-thunk": "^2.3.0"
+    "redux-thunk": "^2.3.0",
+    "regenerator-runtime": "^0.13.3"
   },
   "ava": {
     "require": [
-      "@babel/polyfill",
+      "core-js/stable",
+      "regenerator-runtime/runtime",
       "@babel/register"
     ],
     "babel": {
       "testOptions": {
         "presets": [
-          "@babel/env"
+          "@babel/preset-env"
         ],
         "ignore": []
       }
